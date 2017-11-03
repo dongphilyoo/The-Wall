@@ -4,4 +4,5 @@ function setup() {
 
 function draw() {
     spray();
+//    shake();
 }

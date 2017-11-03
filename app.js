@@ -2,14 +2,16 @@ let serial; // variable to hold an instance of the serialport library
 let options = {
     baudrate: 9600
 }; // set baudrate to 9600; must match Arduino baudrate
-let portName = '/dev/cu.PHIL-DevB';
+//let portName = '/dev/cu.PHIL-DevB';
 //let portName = '/dev/cu.Bluetooth-Incoming-Port';
-//let portName = '/dev/cu.usbmodem14621'; // fill in serial port name
+let portName = '/dev/cu.usbmodem14621'; // fill in serial port name
 let colors, trackingData;
+
+//let trigger = false;
 
 let data; // for incoming serial data
 let val;
-let r, g, b, c, d;
+let r, g, b, c, d, accX, accY, accZ, ori;
 //let threshold = 10;
 let cBtn, bBtn, wBtn, resetBtn, eraseBtn, clearBtn, saveBtn;
 let btnPosX, btnPosY;
@@ -98,9 +100,9 @@ function spray() {
     }
 
     if (d > 0 && trackingData) {
-        let panning = map(locX, 0., width, 1.0, -1.0);
-        sfx.pan(panning);
-        sfx.play();
+        //        let panning = map(locX, 0., width, 1.0, -1.0);
+        //        sfx.pan(panning);
+        //        sfx.play();
 
 
         //        for (var i = 0; i < trackingData.length; i++) {
@@ -135,6 +137,7 @@ function spray() {
         }
     } else if (d < 0 || !trackingData) {
         sfx.stop();
+        //return trigger = false;
     }
     //    }
 }
@@ -149,6 +152,10 @@ function serialEvent() {
     b = Number(val[2]);
     c = Number(val[3]);
     d = Number(val[4]);
+    accX = Number(val[5]);
+    accY = Number(val[6]);
+    accZ = Number(val[7]);
+    ori = Number(val[8]);
 
     d = map(d, 560, 1000, 0, 320); // mapping FSR analog value to control nozzle radius
 
@@ -162,16 +169,32 @@ function serialEvent() {
     r = parseInt(r);
     g = parseInt(g);
     b = parseInt(b);
+
+    accX = abs(accX);
+    accY = abs(accY);
+    accZ = abs(accZ);
+
+    //    console.log(accX + ', ' + accY + ', ' + accZ);
+    if (accX >= 17 || accY >= 17 || accZ >= 17) {
+        console.log("Shake!!");
+        shake();
+    }
 }
 
 function colorPicker() {
-    //fill(r, g, b);
+    fill(r, g, b);
     document.getElementById('colorBox').style.backgroundColor = 'rgb(' + r + ',' + g + ',' + b + ')';
+    //    return trigger = true;
+    //    return false;
 }
 
 function resetColor() {
     fill(0);
     document.getElementById('colorBox').style.backgroundColor = 'rgb(' + 0 + ',' + 0 + ',' + 0 + ')';
+    //    if (d > 0) {
+    //    return trigger = true;
+    //    return false;
+    //    }
 }
 
 function eraser() {
@@ -221,3 +244,27 @@ function keyPressed() {
 //    resizeCanvas(windowWidth, windowHeight);
 //    background(220);
 //}
+//function shake() {
+//    //return trigger = false;
+//    //    if (accX >= 17 || accY >= 17 || accZ >= 17) {
+//    if (d > 0) {
+//        resetColor();
+//        //return false;
+//    } else {
+//        setTimeout(colorPicker, 4000);
+//    }
+//}
+//}
+function shake() {
+    switch (ori) {
+        case 1:
+            setTimeout(colorPicker, 4500);
+            break;
+        case 2:
+            eraser();
+            break;
+        case 3:
+            resetColor();
+            break;
+    }
+}
